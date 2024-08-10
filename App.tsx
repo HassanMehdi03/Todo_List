@@ -1,117 +1,174 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useState} from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
   View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  TextInput,
+  Keyboard,
+  Alert,
+  ToastAndroid
+
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import Tasks from './components/Tasks';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const App = () => {
+  const [task, setTask] = useState('');
+  const [taskItems, setTaskItems] = useState<string[]>([]);
+  const [isUpdating,setIsUpdating]=useState<boolean>(false);
+  const [updateIndex,setUpdateIndex]=useState<number | null>(null);
+  const addTask = () => {
+    if (task === '') {
+      ToastAndroid.show("Please write a task", ToastAndroid.SHORT);
+      return;
+    }
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    if(isUpdating && updateIndex!==null)
+    {
+      const itemsCopy=[...taskItems];
+      itemsCopy[updateIndex]=task;
+      setTaskItems(itemsCopy);
+      setIsUpdating(false);
+      setUpdateIndex(null);
+    }
+    else
+    {
+      setTaskItems([...taskItems, task]);
+    }
+    Keyboard.dismiss();
+    setTask('');
   };
 
+  const deleteTask=(index:number)=>
+  {
+    Alert.alert(
+      'Edit or Delete',
+      'Are you sure you want to update or delete this task?',
+      [
+        {
+          text: 'Delete',
+          onPress: () => {
+            let itemsCopy = [...taskItems];
+            itemsCopy.splice(index, 1);
+            setTaskItems(itemsCopy);
+          },
+        },
+        {
+          text:'Update',
+          onPress:()=>
+          {
+             setIsUpdating(true);
+             setTask(taskItems[index]);
+             setUpdateIndex(index);
+          }
+        },
+      ],
+      {
+        cancelable: true,
+      }
+    )
+  }
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
+    <View style={styles.container}>
+      <Text style={styles.tastTitle}>Today's tasks</Text>
+      <View style={styles.items}></View>
+      <ScrollView>
+        {taskItems.length===0 ? (
+          <Text style={styles.noTask}>No tasks added yet</Text>
+        ) : (
+          taskItems.map((item, index) => {
+            return (
+              <TouchableOpacity onPress={()=>deleteTask(index)}>
+                <Tasks key={index} text={item} />
+              </TouchableOpacity>
+            );
+          })
+        )}
       </ScrollView>
-    </SafeAreaView>
+      <View>
+        <KeyboardAvoidingView style={styles.addTaskContainer}>
+          <TextInput
+            placeholder="Write a task"
+            style={styles.input}
+            value={task}
+            onChangeText={(task) => setTask(task)}
+          />
+          <TouchableOpacity onPress={() => addTask()}>
+            <View style={styles.add}>
+              <Text style={styles.addIcon}>{isUpdating?'✓':'+'}</Text>
+            </View>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </View>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    backgroundColor: '#E8EAED',
+    flex: 1,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
+
+  tastTitle: {
     fontWeight: '700',
+    fontSize: 24,
+    color: 'black',
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+
+  items: {
+    marginTop: 20,
+  },
+
+  addTaskContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  input: {
+    height: 50,
+    width: 246,
+    borderRadius: 60,
+    marginStart: 20,
+    marginVertical: 20,
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    elevation: 5,
+    paddingHorizontal: 20,
+  },
+
+  add: {
+    width: 60,
+    height: 60,
+    borderRadius: 52,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    elevation: 5,
+    marginEnd: 20,
+  },
+
+  addIcon: {
+    fontSize: 35,
+    fontWeight: '100',
+  },
+
+  noTask: {
+    fontSize: 20,
+    fontWeight: '700',
+    paddingHorizontal: 20,
+    marginTop: 20,
+    textAlign: 'center',
+    color: 'black',
+    opacity: 0.5,
   },
 });
 
