@@ -9,41 +9,47 @@ import {
   TextInput,
   Keyboard,
   Alert,
-  ToastAndroid
-
+  ToastAndroid,
+  Dimensions
 } from 'react-native';
 
 import Tasks from './components/Tasks';
 
+const {width}=Dimensions.get('window');
+
+
 const App = () => {
   const [task, setTask] = useState('');
   const [taskItems, setTaskItems] = useState<string[]>([]);
-  const [isUpdating,setIsUpdating]=useState<boolean>(false);
-  const [updateIndex,setUpdateIndex]=useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [updateIndex, setUpdateIndex] = useState<number | null>(null);
   const addTask = () => {
     if (task === '') {
-      ToastAndroid.show("Please write a task", ToastAndroid.SHORT);
+      ToastAndroid.show('Please write a task', ToastAndroid.SHORT);
       return;
     }
 
-    if(isUpdating && updateIndex!==null)
-    {
-      const itemsCopy=[...taskItems];
-      itemsCopy[updateIndex]=task;
+    if (isUpdating && updateIndex !== null) {
+      const itemsCopy = [...taskItems];
+      itemsCopy[updateIndex] = task;
       setTaskItems(itemsCopy);
       setIsUpdating(false);
       setUpdateIndex(null);
-    }
-    else
+      ToastAndroid.show("Task updated successfully", ToastAndroid.SHORT);
+    } 
+    else 
     {
       setTaskItems([...taskItems, task]);
+      ToastAndroid.show(
+        'Task added successfully',
+        ToastAndroid.SHORT,
+      )
     }
     Keyboard.dismiss();
     setTask('');
   };
 
-  const deleteTask=(index:number)=>
-  {
+  const deleteTask = (index: number) => {
     Alert.alert(
       'Edit or Delete',
       'Are you sure you want to update or delete this task?',
@@ -54,35 +60,36 @@ const App = () => {
             let itemsCopy = [...taskItems];
             itemsCopy.splice(index, 1);
             setTaskItems(itemsCopy);
+            ToastAndroid.show("Task deleted successfully", ToastAndroid.SHORT);
           },
         },
         {
-          text:'Update',
-          onPress:()=>
-          {
-             setIsUpdating(true);
-             setTask(taskItems[index]);
-             setUpdateIndex(index);
-          }
+          text: 'Update',
+          onPress: () => {
+            setIsUpdating(true);
+            setTask(taskItems[index]);
+            setUpdateIndex(index);
+          },
         },
       ],
       {
         cancelable: true,
-      }
-    )
-  }
+      },
+    );
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.tastTitle}>Today's tasks</Text>
       <View style={styles.items}></View>
       <ScrollView>
-        {taskItems.length===0 ? (
+        {taskItems.length === 0 ? (
           <Text style={styles.noTask}>No tasks added yet</Text>
         ) : (
           taskItems.map((item, index) => {
             return (
-              <TouchableOpacity onPress={()=>deleteTask(index)}>
+              <TouchableOpacity 
+              activeOpacity={0.8} onPress={() => deleteTask(index)}>
                 <Tasks key={index} text={item} />
               </TouchableOpacity>
             );
@@ -95,11 +102,11 @@ const App = () => {
             placeholder="Write a task"
             style={styles.input}
             value={task}
-            onChangeText={(task) => setTask(task)}
+            onChangeText={task => setTask(task)}
           />
-          <TouchableOpacity onPress={() => addTask()}>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => addTask()}>
             <View style={styles.add}>
-              <Text style={styles.addIcon}>{isUpdating?'✓':'+'}</Text>
+              <Text style={styles.addIcon}>{isUpdating ? '✓' : '+'}</Text>
             </View>
           </TouchableOpacity>
         </KeyboardAvoidingView>
@@ -130,30 +137,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width:width
   },
 
   input: {
     height: 50,
-    width: 246,
+    width: width*0.65,
     borderRadius: 60,
     marginStart: 20,
     marginVertical: 20,
     backgroundColor: 'white',
-    shadowColor: '#000',
+    shadowColor: 'black',
     elevation: 5,
     paddingHorizontal: 20,
   },
 
   add: {
-    width: 60,
+    width: width*1/6,
     height: 60,
     borderRadius: 52,
     backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: 'black',
     elevation: 5,
     marginEnd: 20,
+
   },
 
   addIcon: {

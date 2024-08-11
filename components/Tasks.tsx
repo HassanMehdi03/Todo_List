@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     elevation: 5,
     alignItems: 'center',
-    justifyContent:'space-between',
+    justifyContent: 'space-between',
   },
   square: {
     width: 24,
@@ -48,6 +48,6 @@ const styles = StyleSheet.create({
 
   txtTask: {
     color: 'black',
-    maxWidth:'80%',
+    maxWidth: '80%',
   },
 });
